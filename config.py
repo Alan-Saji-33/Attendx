@@ -54,7 +54,7 @@ ENTRY_HEIGHT = 35
 SMTP_CONFIG = {
     'server': 'smtp.gmail.com',  # Default to Gmail
     'port': 587,
-    'username': 'x9watche@gmail.com',
-    'password': 'zvyj xast kexl egyf',
+    'username': 'xxx@gmail.com',
+    'password': 'xxx',
     'from_name': 'Attendance System'
 }
