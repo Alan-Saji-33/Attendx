@@ -14,7 +14,7 @@ def run_test():
     
     # Test data
     student_name = "Test Student"
-    student_email = "alansajivalolickal@gmail.com"
+    student_email = "xxxx@gmail.com"
     date = datetime.now().strftime("%Y-%m-%d")
     period = 1
     status = "Absent"
