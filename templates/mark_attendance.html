@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }} - Face Recognition Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .sidebar-header .logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .user-role {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 11px;
+            text-transform: capitalize;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .nav-section {
+            margin-bottom: 20px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #888;
+            padding: 0 12px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            margin-left: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            margin: 15px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .date-badge {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .stat-icon.primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-content h4 {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Camera Card */
+        .camera-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .camera-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px 25px;
+        }
+
+        .camera-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .camera-body {
+            padding: 25px;
+        }
+
+        .instructions-card {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 13px;
+            color: #78350f;
+        }
+
+        .instructions-card i {
+            font-size: 24px;
+            color: #f59e0b;
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 20px;
+            border: 3px solid #e5e7eb;
+        }
+
+        .camera-container video,
+        .camera-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 3px solid var(--success);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .camera-overlay.active {
+            opacity: 1;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-start {
+            padding: 15px 40px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-start:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-stop {
+            padding: 15px 40px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-stop:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .status-display {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .status-display.success {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+        }
+
+        .status-display.warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+
+        .status-display.error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+        }
+
+        .status-display.scanning {
+            background: #e0f2fe;
+            border: 2px solid #3b82f6;
+        }
+
+        .status-display.idle {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+        }
+
+        .status-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .status-subtext {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        /* Results Card */
+        .results-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: fit-content;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .results-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .marked-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .marked-item.new {
+            border-left-color: var(--success);
+        }
+
+        .marked-item.already {
+            border-left-color: var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .marked-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+
+        .marked-icon.new {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .marked-icon.already {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .marked-info {
+            flex: 1;
+        }
+
+        .marked-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .marked-dept {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .marked-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-left: 10px;
+        }
+
+        .empty-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-results i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .recent-activity {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .recent-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <div class="logo">🎓</div>
+                <h3>Attendance System</h3>
+                <p>Face Recognition</p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">A</div>
+                <div class="user-name">Administrator</div>
+                <span class="user-role">admin</span>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Navigation</div>
+                    <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                    <a href="/students" class="nav-item"><i class="fas fa-users"></i><span>Student Management</span></a>
+                    <a href="/manual-attendance" class="nav-item"><i class="fas fa-pen"></i><span>Manual
+                            Attendance</span></a>
+                    <a href="/mark-attendance" class="nav-item active"><i class="fas fa-camera"></i><span>Mark
+                            Attendance</span></a>
+                    <a href="/attendance" class="nav-item"><i class="fas fa-clipboard-list"></i><span>Attendance
+                            Reports</span></a>
+                </div>
+            </div>
+            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-camera" style="color: var(--primary);"></i>
+                Face Recognition Attendance
+                <span class="date-badge" id="currentDate"></span>
+            </div>
+            <a href="/dashboard" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Today's Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div class="stat-content">
+                    <h4>Total Students</h4>
+                    <div class="stat-value" id="totalStudents">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-content">
+                    <h4>Present Today</h4>
+                    <div class="stat-value" id="presentToday">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-content">
+                    <h4>Attendance Rate</h4>
+                    <div class="stat-value" id="attendanceRate">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Camera Section -->
+            <div class="camera-section">
+                <div class="camera-card">
+                    <div class="camera-header">
+                        <h3><i class="fas fa-video"></i> Live Camera Feed</h3>
+                    </div>
+                    <div class="camera-body">
+                        <div class="instructions-card">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>
+                                <strong>Quick Guide:</strong> Click "Start Camera" and position your face clearly.
+                                The system will automatically detect and mark attendance for recognized students.
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Select Period</label>
+                                <select id="periodSelect" class="form-select">
+                                    <option value="1">Period 1</option>
+                                    <option value="2">Period 2</option>
+                                    <option value="3">Period 3</option>
+                                    <option value="4">Period 4</option>
+                                    <option value="5">Period 5</option>
+                                    <option value="6">Period 6</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="camera-container">
+                            <video id="videoElement" autoplay playsinline></video>
+                            <canvas id="overlayCanvas"></canvas>
+                            <div class="camera-overlay" id="cameraOverlay"></div>
+                        </div>
+
+                        <div class="camera-controls">
+                            <button class="btn-start" id="startBtn" onclick="startCamera()">
+                                <i class="fas fa-play"></i> Start Camera
+                            </button>
+                            <button class="btn-stop" id="stopBtn" onclick="stopCamera()" style="display: none;">
+                                <i class="fas fa-stop"></i> Stop Camera
+                            </button>
+                        </div>
+
+                        <div class="status-display idle" id="statusDisplay">
+                            <div class="status-icon" id="statusIcon">📷</div>
+                            <div class="status-text" id="statusText">Camera is off</div>
+                            <div class="status-subtext" id="statusSubtext">Click Start Camera to begin attendance
+                                marking</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Results Section -->
+            <div class="results-section">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Today's Attendance</h3>
+                        <span class="results-count" id="markedCount">0</span>
+                    </div>
+                    <div class="results-body" id="markedStudents">
+                        <div class="empty-results">
+                            <i class="fas fa-user-clock"></i>
+                            <p>No attendance marked yet today</p>
+                            <small class="text-muted">Start the camera to begin marking attendance</small>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity (shows last 5 marks) -->
+                    <div class="recent-activity" id="recentActivity" style="display: none;">
+                        <div class="recent-title">
+                            <i class="fas fa-history me-2"></i>Recent Activity
+                        </div>
+                        <div id="recentList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let videoStream = null;
+        let recognitionTimeout = null;
+        let isRunning = false;
+        let isProcessing = false;
+        let markedStudents = new Set();
+        let recentMarks = [];
+        let recognitionInterval = 3000; // 3 seconds between recognition attempts
+
+        // Set current date
+        const today = new Date();
+        document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Load initial data when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTodayStats();
+            loadTodayAttendance();
+            fetchTakenPeriods();
+        });
+
+        async function fetchTakenPeriods() {
+            try {
+                const res = await fetch('/api/attendance/taken-periods');
+                const taken = await res.json(); // Array of period numbers [1, 2, 3]
+
+                const select = document.getElementById('periodSelect');
+                let firstAvailable = null;
+
+                for (let option of select.options) {
+                    const p = parseInt(option.value);
+                    if (taken.includes(p)) {
+                        option.disabled = true;
+                        option.text += ' (Already marked)';
+                    } else if (firstAvailable === null) {
+                        firstAvailable = option.value;
+                    }
+                }
+
+                if (firstAvailable) {
+                    select.value = firstAvailable;
+                } else {
+                    document.querySelector('.instructions-card').innerHTML = `
+                        <i class="fas fa-check-double text-success"></i>
+                        <div class="text-success">
+                            <strong>All periods marked!</strong> All 6 periods for your department have been marked for today.
+                        </div>
+                    `;
+                    document.getElementById('startBtn').disabled = true;
+                }
+            } catch (e) { console.error('Error fetching taken periods:', e); }
+        }
+
+        async function loadTodayStats() {
+            try {
+                // Get total students count
+                const studentsRes = await fetch('/api/students/count');
+                if (!studentsRes.ok) throw new Error('Failed to fetch student count');
+                const studentsData = await studentsRes.json();
+                document.getElementById('totalStudents').textContent = studentsData.total || 0;
+
+                // Update attendance rate if we have present count
+                updateAttendanceRate();
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('totalStudents').textContent = '0';
+            }
+        }
+
+        async function loadTodayAttendance() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch('/api/attendance/date?date=' + today);
+                if (!response.ok) throw new Error('Failed to fetch attendance');
+
+                const records = await response.json();
+
+                const presentCount = records.filter(r => r.status === 'Present').length;
+                document.getElementById('presentToday').textContent = presentCount;
+
+                // Clear and rebuild marked students set
+                markedStudents.clear();
+
+                const container = document.getElementById('markedStudents');
+                container.innerHTML = '';
+
+                if (records.length === 0) {
+                    container.innerHTML = '<div class="empty-results"><i class="fas fa-user-clock"></i><p>No attendance marked yet today</p><small class="text-muted">Start the camera to begin marking attendance</small></div>';
+                } else {
+                    // Sort by time (most recent first)
+                    records.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                    records.forEach(record => {
+                        if (record.status === 'Present') {
+                            markedStudents.add(record.student_id);
+                            // Create student object from record
+                            const student = {
+                                student_id: record.student_id,
+                                name: record.name || 'Unknown',
+                                department: record.department || 'N/A',
+                                year: record.year || 'N/A'
+                            };
+                            addMarkedStudent(student, false, false);
+                        }
+                    });
+                }
+
+                document.getElementById('markedCount').textContent = markedStudents.size;
+                updateAttendanceRate();
+
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+            }
+        }
+
+        function updateAttendanceRate() {
+            const total = parseInt(document.getElementById('totalStudents').textContent) || 0;
+            const present = parseInt(document.getElementById('presentToday').textContent) || 0;
+
+            if (total > 0) {
+                const rate = Math.round((present / total) * 100);
+                document.getElementById('attendanceRate').textContent = rate + '%';
+            } else {
+                document.getElementById('attendanceRate').textContent = '0%';
+            }
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('videoElement');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+
+            try {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+
+                video.srcObject = videoStream;
+
+                // Wait for video to be ready
+                video.onloadedmetadata = function () {
+                    video.play();
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'flex';
+                    startBtn.disabled = false;
+
+                    updateStatus('scanning', '🔄', 'Camera is active', 'Scanning for faces...');
+
+                    isRunning = true;
+                    // Start recognition after camera is initialized
+                    setTimeout(recognizeFace, 2000);
+                };
+
+            } catch (err) {
+                console.error('Camera error:', err);
+                updateStatus('error', '❌', 'Camera access failed', 'Please allow camera permissions');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Start Camera';
+            }
+        }
+
+        async function recognizeFace() {
+            if (!isRunning || isProcessing) {
+                if (isRunning) {
+                    recognitionTimeout = setTimeout(recognizeFace, recognitionInterval);
+                }
+                return;
+            }
+
+            const video = document.getElementById('videoElement');
+
+            if (!video.videoWidth || !video.videoHeight) {
+                recognitionTimeout = setTimeout(recognizeFace, 1000);
+                return;
+            }
+
+            // Show scanning overlay
+            document.getElementById('cameraOverlay').classList.add('active');
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            isProcessing = true;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const period = document.getElementById('periodSelect').value;
+                const response = await fetch('/api/recognize-face', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: imageData,
+                        period: period
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error('Server error: ' + response.status);
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.student) {
+                    const student = data.student;
+
+                    if (!markedStudents.has(student.student_id)) {
+                        markedStudents.add(student.student_id);
+
+                        if (data.already_marked) {
+                            addMarkedStudent(student, true, true);
+                            updateStatus('warning', '⏰', 'Already Marked', student.name + ' was already marked today');
+                        } else {
+                            addMarkedStudent(student, false, true);
+                            updateStatus('success', '✅', 'Attendance Marked!', student.name + ' has been marked present');
+
+                            // Update present count
+                            const presentCount = parseInt(document.getElementById('presentToday').textContent) + 1;
+                            document.getElementById('presentToday').textContent = presentCount;
+
+                            // Update attendance rate
+                            updateAttendanceRate();
+                        }
+
+                        document.getElementById('markedCount').textContent = markedStudents.size;
+                    } else {
+                        updateStatus('info', 'ℹ️', 'Already Marked', student.name + ' was already marked in this session');
+                    }
+                } else {
+                    updateStatus('scanning', '🔄', 'No face recognized', 'Please position your face clearly in the frame');
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    updateStatus('error', '⚠️', 'Request timeout', 'Taking too long, retrying...');
+                } else {
+                    console.error('Recognition error:', err);
+                    updateStatus('error', '❌', 'Recognition failed', 'Please try again');
+                }
+            } finally {
+                isProcessing = false;
+                document.getElementById('cameraOverlay').classList.remove('active');
+
+                if (isRunning) {
+                    recognitionTimeout = setTimeout(recognizeFace, recognitionInterval);
+                }
+            }
+        }
+
+        function addMarkedStudent(student, alreadyMarked, isNew = true) {
+            const container = document.getElementById('markedStudents');
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // Remove empty state if exists
+            const emptyState = container.querySelector('.empty-results');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const markedItem = document.createElement('div');
+            markedItem.className = `marked-item ${alreadyMarked ? 'already' : 'new'}`;
+            markedItem.innerHTML = `
+                <div class="marked-icon ${alreadyMarked ? 'already' : 'new'}">
+                    <i class="fas ${alreadyMarked ? 'fa-check' : 'fa-check-circle'}"></i>
+                </div>
+                <div class="marked-info">
+                    <div class="marked-name">${student.name}</div>
+                    <div class="marked-dept">${student.department || 'N/A'} • Year ${student.year || 'N/A'}</div>
+                </div>
+                <div class="marked-time">${alreadyMarked ? 'Already today' : time}</div>
+            `;
+
+            container.insertBefore(markedItem, container.firstChild);
+
+            // Add to recent activity
+            if (isNew) {
+                recentMarks.unshift({
+                    name: student.name,
+                    dept: student.department,
+                    time: time,
+                    already: alreadyMarked
+                });
+
+                if (recentMarks.length > 5) recentMarks.pop();
+
+                updateRecentActivity();
+            }
+        }
+
+        function updateRecentActivity() {
+            const recentContainer = document.getElementById('recentActivity');
+            const recentList = document.getElementById('recentList');
+
+            if (recentMarks.length > 0) {
+                recentContainer.style.display = 'block';
+                let html = '';
+                recentMarks.forEach(mark => {
+                    html += `
+                        <div class="marked-item ${mark.already ? 'already' : 'new'}" style="margin-bottom: 5px; padding: 10px;">
+                            <div class="marked-icon ${mark.already ? 'already' : 'new'}" style="width: 30px; height: 30px; font-size: 12px;">
+                                <i class="fas ${mark.already ? 'fa-check' : 'fa-plus'}"></i>
+                            </div>
+                            <div class="marked-info">
+                                <div class="marked-name" style="font-size: 12px;">${mark.name}</div>
+                            </div>
+                            <div class="marked-time">${mark.time}</div>
+                        </div>
+                    `;
+                });
+                recentList.innerHTML = html;
+            } else {
+                recentContainer.style.display = 'none';
+            }
+        }
+
+        function updateStatus(type, icon, text, subtext) {
+            const display = document.getElementById('statusDisplay');
+
+            display.classList.remove('success', 'warning', 'error', 'scanning', 'idle', 'info');
+            display.classList.add(type);
+
+            document.getElementById('statusIcon').textContent = icon;
+            document.getElementById('statusText').textContent = text;
+            document.getElementById('statusSubtext').textContent = subtext;
+        }
+
+        function stopCamera() {
+            isRunning = false;
+
+            if (recognitionTimeout) {
+                clearTimeout(recognitionTimeout);
+                recognitionTimeout = null;
+            }
+
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+
+            document.getElementById('startBtn').style.display = 'flex';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('cameraOverlay').classList.remove('active');
+
+            updateStatus('idle', '📷', 'Camera is off', 'Click Start Camera to begin attendance marking');
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function () {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            if (recognitionTimeout) {
+                clearTimeout(recognitionTimeout);
+            }
+        });
+    </script>
+</body>
+
+</html>

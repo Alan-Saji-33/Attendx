@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }} - My Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --secondary: #7c3aed; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --dark: #1e293b; --light: #f8fafc; --sidebar-width: 280px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--light); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh; background: var(--dark); color: white; display: flex; flex-direction: column; z-index: 100; }
+        .sidebar-header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); padding: 30px 25px; text-align: center; }
+        .sidebar-header .logo { font-size: 40px; margin-bottom: 10px; }
+        .sidebar-header h3 { font-size: 18px; font-weight: 700; }
+        .user-info { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .user-avatar { width: 60px; height: 60px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 15px; }
+        .user-name { font-weight: 600; margin-bottom: 5px; }
+        .user-role { display: inline-block; padding: 5px 15px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size: 12px; text-transform: capitalize; }
+        .nav-menu { flex: 1; padding: 20px 15px; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 14px 15px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item i { width: 25px; font-size: 18px; }
+        .nav-item span { margin-left: 12px; font-size: 14px; }
+        .logout-btn { margin: 15px; padding: 14px; background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; text-decoration: none; display: block; }
+        .logout-btn:hover { background: var(--danger); color: white; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; min-height: 100vh; }
+        .page-title { font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 30px; }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .stat-card { flex: 1; min-width: 180px; background: white; border-radius: 16px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 15px; }
+        .stat-icon.primary { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .stat-icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--dark); }
+        .stat-label { font-size: 13px; color: #6b7280; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: none; margin-bottom: 30px; }
+        .card-header { background: transparent; border-bottom: 1px solid #e5e7eb; padding: 20px 25px; }
+        .card-title { font-size: 18px; font-weight: 600; color: var(--dark); margin: 0; }
+        .table thead th { background: var(--primary); color: white; border: none; padding: 12px 15px; }
+        .table tbody td { padding: 12px 15px; vertical-align: middle; }
+        .badge-present { background: #d1fae5; color: #065f46; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; }
+        .badge-absent { background: #fee2e2; color: #991b1b; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; }
+        .percentage-circle { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--success) var(--percentage, 0%), #e5e7eb 0%); display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; }
+        .percentage-inner { width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .percentage-value { font-size: 24px; font-weight: 700; color: var(--dark); }
+        .percentage-label { font-size: 10px; color: #6b7280; }
+        @media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">🎓</div>
+            <h3>Attendance System</h3>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">S</div>
+            <div class="user-name" id="userName">Student</div>
+            <span class="user-role">student</span>
+        </div>
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+            <a href="/my-attendance" class="nav-item active"><i class="fas fa-calendar-check"></i><span>My Attendance</span></a>
+        </div>
+        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="main-content">
+        <h1 class="page-title">My Attendance</h1>
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-calendar"></i></div>
+                <div class="stat-value" id="totalDays">0</div>
+                <div class="stat-label">Total Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value" id="presentDays">0</div>
+                <div class="stat-label">Present Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-value" id="absentDays">0</div>
+                <div class="stat-label">Absent Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="percentage-circle" id="percentageCircle">
+                    <div class="percentage-inner">
+                        <span class="percentage-value" id="percentageValue">0%</span>
+                        <span class="percentage-label">Attendance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title"><i class="fas fa-history"></i> Attendance History</h5>
+            </div>
+            <div class="card-body">
+                <table class="table" id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceBody">
+                        <tr><td colspan="3" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function loadAttendance() {
+            try {
+                const response = await fetch('/api/attendance/student');
+                const records = await response.json();
+                
+                // Load stats
+                const statsResponse = await fetch('/api/attendance/stats/student');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('totalDays').textContent = stats.total_days || 0;
+                document.getElementById('presentDays').textContent = stats.present_days || 0;
+                document.getElementById('absentDays').textContent = stats.absent_days || 0;
+                document.getElementById('percentageValue').textContent = (stats.percentage || 0) + '%';
+                document.getElementById('percentageCircle').style.setProperty('--percentage', (stats.percentage || 0) + '%');
+                
+                // Load table
+                const tbody = document.getElementById('attendanceBody');
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center">No attendance records found</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                records.forEach(record => {
+                    const statusBadge = record.status === 'Present' 
+                        ? '<span class="badge-present">Present</span>'
+                        : '<span class="badge-absent">Absent</span>';
+                    html += '<tr><td>' + record.date + '</td><td>' + record.time + '</td><td>' + statusBadge + '</td></tr>';
+                });
+                tbody.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadAttendance);
+    </script>
+</body>
+</html>

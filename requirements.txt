@@ -1,0 +1,38 @@
+# Install using: pip install -r requirements.txt
+
+# Web Framework (for web UI)
+flask
+
+# GUI Framework
+customtkinter
+
+# Computer Vision
+opencv-python
+opencv-contrib-python
+
+# Face Recognition
+deepface
+tf-keras
+tensorflow
+
+# Image Processing
+Pillow
+numpy
+matplotlib
+
+# Database
+PyMySQL
+
+# Excel Export
+openpyxl
+
+#date entry
+tkcalendar
+
+#ERROR: Could not install packages due to an OSError: [Errno 2] No such file or directory: 'C:\\Users\\Faizan Khan\\PycharmProjects\\face_r ecognition_attendance_system_new\\venv\\Lib\\site-packages\\tensorflow\\include\\external\\envoy_api\\envoy\\extensions\\load_balancing_po licies\\client_side_weighted_round_robin\\v3\\client_side_weighted_round_robin.upb_minitable.h'
+
+#Step 1: Open Command Prompt as Administrator
+
+#Run this command (without #):
+#reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
+#Then restart your computer

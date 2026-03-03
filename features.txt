@@ -1,0 +1,90 @@
+FEATURES LIST - Face Recognition Attendance System
+=================================================
+
+1. USER ROLES
+   - Admin: Full system access, can manage students, teachers, and all attendance
+   - Teacher: Department-specific access, can mark attendance and view department students
+   - Student: Can view their own attendance records
+
+2. STUDENT MANAGEMENT
+   - Add new students with details:
+     * Student ID (auto-generated)
+     * Full Name
+     * Roll Number
+     * Department
+     * Year
+     * Email (optional)
+     * Phone (optional)
+   - Login Credentials (optional):
+     * Username
+     * Password
+   - Delete students
+   - Register/Update face recognition for students
+
+3. TEACHER MANAGEMENT
+   - Add teachers with:
+     * Username
+     * Password
+     * Name
+     * Assigned Department
+   - Update teacher details
+   - Delete teachers
+
+4. FACE RECOGNITION
+   - Capture face during student registration (optional)
+   - Register face later using camera button
+   - Mark attendance by face recognition
+   - Real-time face detection with guide overlay
+   - Duplicate face detection to prevent fraud
+
+5. ATTENDANCE MARKING
+   - Automatic face-based attendance marking
+   - Manual attendance marking by teachers/admin
+   - Mark attendance for any date (past or present)
+   - Mark as Present/Absent
+
+6. ATTENDANCE REPORTS
+   - View all attendance records
+   - Filter by date
+   - Filter by department
+   - Filter by status (Present/Absent)
+   - Export to Excel (.xlsx format)
+
+7. DASHBOARD & STATISTICS
+   - Overall attendance statistics
+   - Today's attendance summary
+   - Attendance trend chart (last 7 days)
+   - Department-wise statistics
+   - Student-wise attendance stats
+
+8. STUDENT PORTAL
+   - Students can view their own attendance
+   - View attendance statistics (total days, present days, percentage)
+   - Check if marked present for today
+
+9. SECURITY FEATURES
+   - Password hashing (SHA256)
+   - Session management
+   - Role-based access control
+   - Login required for all protected routes
+
+10. LOGIN METHODS
+    - Username/Password login
+   
+
+DEFAULT ACCOUNTS
+===============
+- Admin: username='admin', password='admin123'
+- Teacher: username='teacher', password='teacher123' (Computer Application dept)
+- Student: username='student', password='student123'
+
+TECHNOLOGY STACK
+================
+- Backend: Python Flask
+- Database: MySQL
+- Face Recognition: face_recognition library (dlib)
+- Frontend: HTML, CSS, Bootstrap 5, JavaScript
+- DataTables: For interactive tables
+- Excel Export: openpyxl
+
+All features are accessible via http://localhost:5000

@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }} - Manual Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --success-dark: #059669;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .sidebar-header .logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .user-role {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 11px;
+            text-transform: capitalize;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            margin-left: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            margin: 15px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dept-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .stat-icon.primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .stat-content h4 {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: none;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: white;
+        }
+
+        .card-header input[type="date"] {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .card-header input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Form Elements */
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border: 2px solid var(--gray-light);
+            padding: 10px 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        /* Buttons */
+        .btn-primary,
+        .btn-success,
+        .btn-danger,
+        .btn-info {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(145deg, var(--success), var(--success-dark));
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, var(--danger), var(--danger-dark));
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover,
+        .btn-danger:hover,
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px currentColor;
+        }
+
+        .btn-primary:disabled,
+        .btn-success:disabled,
+        .btn-danger:disabled,
+        .btn-info:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Table Styles */
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            font-size: 14px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .table tbody tr:hover {
+            background: var(--light);
+        }
+
+        /* Badges */
+        .badge-present,
+        .badge-absent,
+        .badge-pending,
+        .badge-period {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge-present {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid var(--success);
+        }
+
+        .badge-absent {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid var(--danger);
+        }
+
+        .badge-pending {
+            background: #f3f4f6;
+            color: var(--gray);
+            border: 1px solid var(--gray-light);
+        }
+
+        .badge-period {
+            background: #e0e7ff;
+            color: #1e40af;
+            border: 1px solid #818cf8;
+            font-size: 11px;
+        }
+
+        .year-badge {
+            background: linear-gradient(145deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Status Info */
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .marked-by {
+            font-size: 11px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .marked-by i {
+            font-size: 10px;
+        }
+
+        .marked-by-teacher {
+            color: var(--primary);
+        }
+
+        .marked-by-student {
+            color: var(--success);
+        }
+
+        .marked-by-system {
+            color: var(--warning);
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: var(--light);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--gray-light);
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid var(--danger);
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Debug Panel */
+        .debug-panel {
+            background: #1e293b;
+            color: #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #4b5563;
+        }
+
+        .debug-title {
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .debug-toggle {
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .debug-toggle:hover {
+            color: white;
+        }
+
+        .debug-content {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-item {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 2px solid #4b5563;
+        }
+
+        .debug-label {
+            color: #9ca3af;
+            margin-right: 10px;
+        }
+
+        .debug-value {
+            color: #d1d5db;
+        }
+
+        .debug-error {
+            color: #ef4444;
+        }
+
+        .debug-success {
+            color: #10b981;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <div class="logo">🎓</div>
+                <h3>Attendance System</h3>
+                <p>Face Recognition</p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">T</div>
+                <div class="user-name">Teacher</div>
+                <span class="user-role">teacher</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="/department-students" class="nav-item"><i class="fas fa-users"></i><span>My Students</span></a>
+                <a href="/manual-attendance" class="nav-item active"><i class="fas fa-pen"></i><span>Manual
+                        Attendance</span></a>
+                <a href="/mark-attendance" class="nav-item"><i class="fas fa-camera"></i><span>Face
+                        Attendance</span></a>
+                <a href="/attendance" class="nav-item"><i class="fas fa-clipboard-list"></i><span>Report</span></a>
+            </div>
+            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-pen" style="color: var(--primary);"></i>
+                Manual Attendance
+            </div>
+            <span class="dept-badge">
+                <i class="fas fa-building me-2"></i> {{ department }}
+            </span>
+        </div>
+
+        <!-- Debug Panel Toggle -->
+        <div style="text-align: right; margin-bottom: 10px;">
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleDebugPanel()">
+                <i class="fas fa-bug"></i> Toggle Debug Info
+            </button>
+        </div>
+
+        <!-- Debug Panel -->
+        <div id="debugPanel" class="debug-panel">
+            <div class="debug-header">
+                <span class="debug-title"><i class="fas fa-bug"></i> Debug Information</span>
+                <span class="debug-toggle" onclick="toggleDebugPanel()">✕</span>
+            </div>
+            <div id="debugContent" class="debug-content">
+                <div class="debug-item">
+                    <span class="debug-label">Status:</span>
+                    <span class="debug-value" id="debugStatus">Initializing...</span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Selected Period:</span>
+                    <span class="debug-value" id="debugPeriod">1</span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Selected Date:</span>
+                    <span class="debug-value" id="debugDate"></span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Attendance Records:</span>
+                    <span class="debug-value" id="debugRecords">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Period Info Banner -->
+        <div class="alert alert-info" style="position: static; margin-bottom: 20px; display: flex; align-items: center;">
+            <i class="fas fa-info-circle me-2"></i>
+            <span>Currently viewing attendance for <strong>Period <span id="currentPeriodDisplay">1</span></strong>. Each student can have only one status per period.</span>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div class="stat-content">
+                    <h4>Total Students</h4>
+                    <div class="stat-value" id="totalStudents">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-content">
+                    <h4>Present</h4>
+                    <div class="stat-value" id="presentCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-content">
+                    <h4>Absent</h4>
+                    <div class="stat-value" id="absentCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+                <div class="stat-content">
+                    <h4>Pending</h4>
+                    <div class="stat-value" id="pendingCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-calendar-check"></i>
+                    Mark Attendance
+                </h5>
+                <div>
+                    <input type="date" class="form-control" id="attendanceDate" value="" style="width: 200px;">
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Alert Message -->
+                <div id="alertMessage" style="display: none;"></div>
+
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Period</label>
+                            <select class="form-select" id="periodSelect" onchange="onPeriodChange()">
+                                <option value="1">Period 1</option>
+                                <option value="2">Period 2</option>
+                                <option value="3">Period 3</option>
+                                <option value="4">Period 4</option>
+                                <option value="5">Period 5</option>
+                                <option value="6">Period 6</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Filter by Year</label>
+                            <select class="form-select" id="yearFilter" onchange="filterByYear()">
+                                <option value="all">All Years</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Search Student</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Type to search..."
+                                onkeyup="searchStudents()">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" onclick="loadStudents()">
+                                <i class="fas fa-sync-alt"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Roll No</th>
+                                <th>Year</th>
+                                <th>Status (Period <span id="tablePeriodDisplay">1</span>)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <p>Select a date and click Refresh to load students</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('attendanceDate').value = today;
+        document.getElementById('debugDate').textContent = today;
+
+        // Debug panel state
+        let debugPanelVisible = false;
+
+        // Store attendance records globally for reference
+        let currentAttendanceRecords = [];
+
+        // Load students immediately when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            loadStudents();
+        });
+
+        // Add event listener for date change
+        document.getElementById('attendanceDate').addEventListener('change', function () {
+            document.getElementById('debugDate').textContent = this.value;
+            loadStudents();
+        });
+
+        function onPeriodChange() {
+            var period = document.getElementById('periodSelect').value;
+            document.getElementById('currentPeriodDisplay').textContent = period;
+            document.getElementById('tablePeriodDisplay').textContent = period;
+            document.getElementById('debugPeriod').textContent = period;
+            loadStudents();
+        }
+
+        function toggleDebugPanel() {
+            debugPanelVisible = !debugPanelVisible;
+            const panel = document.getElementById('debugPanel');
+            if (debugPanelVisible) {
+                panel.classList.add('show');
+            } else {
+                panel.classList.remove('show');
+            }
+        }
+
+        function updateDebugInfo(status, records) {
+            document.getElementById('debugStatus').textContent = status;
+            document.getElementById('debugRecords').textContent = records.length;
+        }
+
+        function getMarkedByIcon(markedBy) {
+            if (!markedBy) return '';
+            
+            markedBy = markedBy.toLowerCase();
+            if (markedBy.includes('teacher')) {
+                return '<span class="marked-by marked-by-teacher"><i class="fas fa-chalkboard-teacher"></i> By Teacher</span>';
+            } else if (markedBy.includes('student')) {
+                return '<span class="marked-by marked-by-student"><i class="fas fa-user-graduate"></i> By Student</span>';
+            } else if (markedBy.includes('face') || markedBy.includes('recognition')) {
+                return '<span class="marked-by marked-by-system"><i class="fas fa-camera"></i> By Face Recognition</span>';
+            } else {
+                return '<span class="marked-by"><i class="fas fa-user"></i> By ' + markedBy + '</span>';
+            }
+        }
+
+        async function loadStudents() {
+            var date = document.getElementById('attendanceDate').value;
+            var period = document.getElementById('periodSelect').value;
+            var tbody = document.getElementById('studentsBody');
+
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading students...</td></tr>';
+
+            try {
+                // Fetch students
+                const studentsRes = await fetch('/api/students/department', {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!studentsRes.ok) {
+                    throw new Error(`HTTP error! status: ${studentsRes.status}`);
+                }
+
+                const students = await studentsRes.json();
+
+                // Fetch attendance for selected date AND period
+                const attendanceRes = await fetch(`/api/attendance/date?date=${date}&period=${period}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                let attendanceRecords = [];
+                if (attendanceRes.ok) {
+                    attendanceRecords = await attendanceRes.json();
+                }
+
+                // Store for debug
+                currentAttendanceRecords = attendanceRecords;
+                updateDebugInfo('Loaded', attendanceRecords);
+
+                // Create attendance map with full record details
+                var attendanceMap = {};
+                for (var i = 0; i < attendanceRecords.length; i++) {
+                    var record = attendanceRecords[i];
+                    attendanceMap[record.student_id] = record;
+                }
+
+                // Update stats
+                var totalStudents = students.length;
+                var presentCount = 0;
+                var absentCount = 0;
+
+                for (var i = 0; i < attendanceRecords.length; i++) {
+                    var record = attendanceRecords[i];
+                    if (record.status === 'Present') presentCount++;
+                    if (record.status === 'Absent') absentCount++;
+                }
+
+                var pendingCount = totalStudents - (presentCount + absentCount);
+
+                document.getElementById('totalStudents').textContent = totalStudents;
+                document.getElementById('presentCount').textContent = presentCount;
+                document.getElementById('absentCount').textContent = absentCount;
+                document.getElementById('pendingCount').textContent = pendingCount;
+
+                // Build table rows with detailed status info
+                var html = '';
+                for (var i = 0; i < students.length; i++) {
+                    var student = students[i];
+                    var attendanceRecord = attendanceMap[student.student_id];
+                    var status = attendanceRecord ? attendanceRecord.status : 'pending';
+                    
+                    let statusHtml = '';
+                    let presentDisabled = '';
+                    let absentDisabled = '';
+
+                    if (status === 'Present') {
+                        var markedByHtml = getMarkedByIcon(attendanceRecord.marked_by);
+                        statusHtml = '<div class="status-info">' +
+                            '<span class="badge-present"><i class="fas fa-check-circle"></i> Present</span>' +
+                            '<span class="badge-period"><i class="fas fa-clock"></i> Period ' + period + '</span>' +
+                            markedByHtml +
+                            '</div>';
+                        presentDisabled = 'disabled';
+                        absentDisabled = '';
+                    } else if (status === 'Absent') {
+                        var markedByHtml = getMarkedByIcon(attendanceRecord.marked_by);
+                        statusHtml = '<div class="status-info">' +
+                            '<span class="badge-absent"><i class="fas fa-times-circle"></i> Absent</span>' +
+                            '<span class="badge-period"><i class="fas fa-clock"></i> Period ' + period + '</span>' +
+                            markedByHtml +
+                            '</div>';
+                        presentDisabled = '';
+                        absentDisabled = 'disabled';
+                    } else {
+                        statusHtml = '<div class="status-info">' +
+                            '<span class="badge-pending"><i class="fas fa-clock"></i> Not Marked for Period ' + period + '</span>' +
+                            '</div>';
+                        presentDisabled = '';
+                        absentDisabled = '';
+                    }
+
+                    var year = student.year || 'N/A';
+                    var yearDisplay = year;
+                    if (year && !isNaN(year)) {
+                        yearDisplay = 'Year ' + year;
+                    }
+
+                    html += '<tr data-year="' + (student.year || '') + '">' +
+                        '<td><strong>' + (student.student_id || 'N/A') + '</strong></td>' +
+                        '<td>' + (student.name || 'N/A') + '</td>' +
+                        '<td>' + (student.roll_no || 'N/A') + '</td>' +
+                        '<td><span class="year-badge">' + yearDisplay + '</span></td>' +
+                        '<td id="status-' + student.student_id + '">' + statusHtml + '</td>' +
+                        '<td>' +
+                        '<button class="btn-success btn-sm me-1" onclick="markAttendance(\'' + student.student_id + '\', \'Present\')" ' + presentDisabled + '>' +
+                        '<i class="fas fa-check"></i> Present' +
+                        '</button>' +
+                        '<button class="btn-danger btn-sm" onclick="markAttendance(\'' + student.student_id + '\', \'Absent\')" ' + absentDisabled + '>' +
+                        '<i class="fas fa-times"></i> Absent' +
+                        '</button>' +
+                        '</td>' +
+                        '</tr>';
+                }
+
+                tbody.innerHTML = html;
+                showAlert('Students loaded successfully for Period ' + period, 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-danger">' +
+                    '<i class="fas fa-exclamation-circle fa-2x mb-3"></i><br>' +
+                    '<h5>Error Loading Students</h5>' +
+                    '<p>' + error.message + '</p>' +
+                    '<button class="btn btn-primary mt-3" onclick="loadStudents()">Try Again</button>' +
+                    '</td></tr>';
+                
+                showAlert('Error loading students: ' + error.message, 'danger');
+            }
+        }
+
+        async function markAttendance(studentId, status) {
+            var date = document.getElementById('attendanceDate').value;
+            var period = document.getElementById('periodSelect').value;
+
+            // Show loading state
+            var statusCell = document.getElementById('status-' + studentId);
+            var originalContent = statusCell.innerHTML;
+            statusCell.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marking...';
+
+            try {
+                var response = await fetch('/api/attendance/manual', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        date: date,
+                        status: status,
+                        period: period,
+                        marked_by: 'Teacher' // You might want to get the actual teacher name from the session
+                    })
+                });
+
+                // Check if response is HTML
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    throw new Error('Session expired. Please refresh the page.');
+                }
+
+                var result = await response.json();
+
+                if (result.success) {
+                    // Update the status cell with detailed info
+                    var markedByHtml = '<span class="marked-by marked-by-teacher"><i class="fas fa-chalkboard-teacher"></i> By Teacher (You)</span>';
+                    
+                    if (status === 'Present') {
+                        statusCell.innerHTML = '<div class="status-info">' +
+                            '<span class="badge-present"><i class="fas fa-check-circle"></i> Present</span>' +
+                            '<span class="badge-period"><i class="fas fa-clock"></i> Period ' + period + '</span>' +
+                            markedByHtml +
+                            '</div>';
+                    } else {
+                        statusCell.innerHTML = '<div class="status-info">' +
+                            '<span class="badge-absent"><i class="fas fa-times-circle"></i> Absent</span>' +
+                            '<span class="badge-period"><i class="fas fa-clock"></i> Period ' + period + '</span>' +
+                            markedByHtml +
+                            '</div>';
+                    }
+
+                    // Disable the clicked button and enable the other
+                    var row = statusCell.closest('tr');
+                    var presentBtn = row.querySelector('.btn-success');
+                    var absentBtn = row.querySelector('.btn-danger');
+
+                    if (status === 'Present') {
+                        presentBtn.disabled = true;
+                        absentBtn.disabled = false;
+                    } else {
+                        presentBtn.disabled = false;
+                        absentBtn.disabled = true;
+                    }
+
+                    // Update stats
+                    updateStats();
+
+                    showAlert('Attendance marked as ' + status + ' for Period ' + period, 'success');
+                } else {
+                    statusCell.innerHTML = originalContent;
+                    showAlert(result.message || 'Error marking attendance', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statusCell.innerHTML = originalContent;
+                showAlert('Error marking attendance: ' + error.message, 'danger');
+            }
+        }
+
+        function updateStats() {
+            var presentBadges = document.querySelectorAll('.badge-present').length;
+            var absentBadges = document.querySelectorAll('.badge-absent').length;
+            var totalStudents = parseInt(document.getElementById('totalStudents').textContent) || 0;
+            var pendingCount = totalStudents - (presentBadges + absentBadges);
+
+            document.getElementById('presentCount').textContent = presentBadges;
+            document.getElementById('absentCount').textContent = absentBadges;
+            document.getElementById('pendingCount').textContent = pendingCount;
+        }
+
+        function filterByYear() {
+            var year = document.getElementById('yearFilter').value;
+            var rows = document.querySelectorAll('#studentsBody tr');
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                if (year === 'all') {
+                    row.style.display = '';
+                } else {
+                    var rowYear = row.getAttribute('data-year');
+                    row.style.display = rowYear === year ? '' : 'none';
+                }
+            }
+        }
+
+        function searchStudents() {
+            var searchText = document.getElementById('searchInput').value.toLowerCase();
+            var rows = document.querySelectorAll('#studentsBody tr');
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            var alertDiv = document.getElementById('alertMessage');
+            alertDiv.style.display = 'flex';
+            alertDiv.className = 'alert alert-' + type;
+            
+            // Set icon based on type
+            var icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'danger') icon = 'exclamation-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
+            
+            alertDiv.innerHTML = '<i class="fas fa-' + icon + '"></i>' + message;
+
+            setTimeout(function () {
+                alertDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

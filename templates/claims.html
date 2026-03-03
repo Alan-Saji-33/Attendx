@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }} - Attendance Claims</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark);
+            color: white;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .sidebar-header .logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .nav-menu {
+            padding: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: none;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background: white;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-Pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-Approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-Denied {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">🎓</div>
+            <h3>Attendance</h3>
+        </div>
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            {% if role == 'student' %}
+            <a href="/claims" class="nav-item active"><i class="fas fa-file-alt"></i> My Claims</a>
+            {% else %}
+            <a href="/students" class="nav-item"><i class="fas fa-users"></i> Students</a>
+            <a href="/manual-attendance" class="nav-item"><i class="fas fa-pen"></i> Manual</a>
+            <a href="/mark-attendance" class="nav-item"><i class="fas fa-camera"></i> Take Attendance</a>
+            <a href="/claims" class="nav-item active"><i class="fas fa-tasks"></i> Approve Claims</a>
+            {% endif %}
+            <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="m-0">Attendance Claims</h3>
+                {% if role == 'student' %}
+                <button class="btn btn-primary" onclick="showClaimModal()">
+                    <i class="fas fa-plus me-2"></i>New Claim
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Period</th>
+                                {% if role == 'teacher' %}<th>Student</th>{% endif %}
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Response</th>
+                                {% if role == 'teacher' %}<th>Action</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                            <tr>
+                                <td>{{ claim.date }}</td>
+                                <td>P{{ claim.period }}</td>
+                                {% if role == 'teacher' %}<td>{{ claim.name }}</td>{% endif %}
+                                <td>{{ claim.reason }}</td>
+                                <td>
+                                    <span class="badge badge-{{ claim.status }} p-2 rounded-pill">
+                                        {{ claim.status }}
+                                    </span>
+                                </td>
+                                <td>{{ claim.teacher_response or 'Pending...' }}</td>
+                                {% if role == 'teacher' and claim.status == 'Pending' %}
+                                <td>
+                                    <button class="btn btn-sm btn-success"
+                                        onclick="updateClaim('{{ claim.id }}', 'Approved')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger"
+                                        onclick="updateClaim('{{ claim.id }}', 'Denied')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Modal -->
+    <div id="claimModal" class="modal">
+        <div class="modal-content">
+            <h4 class="mb-4">Submit Attendance Claim</h4>
+            <form id="claimForm">
+                <div class="mb-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="claimDate" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Period</label>
+                    <select id="claimPeriod" class="form-select" required>
+                        <option value="1">Period 1</option>
+                        <option value="2">Period 2</option>
+                        <option value="3">Period 3</option>
+                        <option value="4">Period 4</option>
+                        <option value="5">Period 5</option>
+                        <option value="6">Period 6</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reason</label>
+                    <textarea id="claimReason" class="form-control" rows="3" required
+                        placeholder="State your reason for absence..."></textarea>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light" onclick="hideClaimModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showClaimModal() { document.getElementById('claimModal').style.display = 'flex'; }
+        function hideClaimModal() { document.getElementById('claimModal').style.display = 'none'; }
+
+        document.getElementById('claimForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const date = document.getElementById('claimDate').value;
+            const period = document.getElementById('claimPeriod').value;
+            const reason = document.getElementById('claimReason').value;
+
+            try {
+                const res = await fetch('/api/claims/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, period, reason })
+                });
+                const data = await res.json();
+                if (data.success) location.reload();
+                else alert(data.message);
+            } catch (err) { alert('Error submitting claim'); }
+        });
+
+        async function updateClaim(id, status) {
+            const response = prompt("Enter a response message (Optional):");
+            try {
+                const res = await fetch('/api/claims/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ claim_id: id, status, teacher_response: response })
+                });
+                const data = await res.json();
+                if (data.success) location.reload();
+                else alert(data.message);
+            } catch (err) { alert('Error updating claim'); }
+        }
+    </script>
+</body>
+
+</html>

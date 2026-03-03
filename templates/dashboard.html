@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }} - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 25px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header .logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-avatar.admin {
+            background: var(--danger);
+        }
+
+        .user-avatar.teacher {
+            background: var(--secondary);
+        }
+
+        .user-avatar.student {
+            background: var(--success);
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .user-role {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 11px;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            margin-left: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            margin: 15px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .stat-icon.primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: none;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Period Grid */
+        .period-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .period-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #f1f5f9;
+        }
+
+        .period-box.present {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .period-box.absent {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .period-num {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Notifications */
+        .notifications-container {
+            position: relative;
+        }
+
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border: 1px solid #f1f5f9;
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+            border-left: 3px solid var(--primary);
+        }
+
+        .notification-item .message {
+            font-size: 13px;
+            color: #1e293b;
+        }
+
+        .notification-item .time {
+            font-size: 11px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-content">
+            <div class="user-info">
+                <div class="user-avatar {{ user_data.role }}">{{ user_data.name[0] }}</div>
+                <div class="user-name">{{ user_data.name }}</div>
+                <span class="user-role">{{ user_data.role }}</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/dashboard" class="nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="/claims" class="nav-item"><i class="fas fa-file-invoice"></i><span>Claims</span></a>
+                {% if user_data.role != 'student' %}
+                <a href="/students" class="nav-item"><i class="fas fa-users"></i><span>Student Management</span></a>
+                <a href="/manual-attendance" class="nav-item"><i class="fas fa-pen"></i><span>Manual
+                        Attendance</span></a>
+                <a href="/mark-attendance" class="nav-item"><i class="fas fa-camera"></i><span>Face
+                        Attendance</span></a>
+                <a href="/attendance" class="nav-item"><i class="fas fa-list"></i><span>Reports</span></a>
+                {% endif %}
+            </div>
+            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome-banner d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Hello, {{ user_data.name }}!</h1>
+                <p>Today is {{ today or 'Today' }}</p>
+            </div>
+            <div class="notifications-container">
+                <button class="btn btn-light position-relative" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    {% set unread_count = notifications|selectattr('is_read', 'equalto', 0)|list|length %}
+                    {% if unread_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_count }}
+                    </span>
+                    {% endif %}
+                </button>
+                <div id="notificationsDropdown" class="notifications-dropdown" style="display:none;">
+                    <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
+                        <strong>Notifications</strong>
+                        <button class="btn btn-sm btn-link" onclick="markAllAsRead()">Mark as read</button>
+                    </div>
+                    <div class="notifications-list" style="max-height: 300px; overflow-y: auto;">
+                        {% for n in notifications %}
+                        <div class="notification-item {{ 'unread' if not n.is_read }}">
+                            <div class="message">{{ n.message }}</div>
+                            <div class="time">{{ n.created_at }}</div>
+                        </div>
+                        {% endfor %}
+                        {% if not notifications %}
+                        <div class="p-3 text-center text-muted">No notifications</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if user_data.role == 'student' %}
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-calendar"></i></div>
+                <div>
+                    <h4>Total Days</h4>
+                    <div class="stat-value">{{ stats.total_days }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-check"></i></div>
+                <div>
+                    <h4>Present</h4>
+                    <div class="stat-value">{{ stats.present_days }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon {{ 'danger' if stats.percentage < 75 else 'success' }}"><i
+                        class="fas fa-percentage"></i></div>
+                <div>
+                    <h4>Attendance</h4>
+                    <div class="stat-value">{{ stats.percentage }}%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Today's Period Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="period-grid" id="studentPeriodGrid">
+                    {% for p in range(1, 7) %}
+                    <div class="period-box" id="period-{{ p }}">
+                        <span class="period-num">Period {{ p }}</span>
+                        <div class="status">Loading...</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div>
+                    <h4>Total Students</h4>
+                    <div class="stat-value">{{ stats.total_students or 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
+                <div>
+                    <h4>Present Today</h4>
+                    <div class="stat-value">{{ stats.present_today or 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="fas fa-user-times"></i></div>
+                <div>
+                    <h4>Absent Today</h4>
+                    <div class="stat-value">{{ stats.absent_today or 0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Today's Attendance List</h5>
+                <a href="/mark-attendance" class="btn btn-primary btn-sm">Mark Attendance</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" id="attendanceTableContainer">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Period</th>
+                                <th>Student</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Marked By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceList">
+                            <tr>
+                                <td colspan="5" class="text-center p-4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function markAllAsRead() {
+            await fetch('/api/notifications/read', { method: 'POST' });
+            location.reload();
+        }
+
+        async function loadAttendance() {
+            try {
+                const res = await fetch('/api/attendance');
+                const records = await res.json();
+
+                {% if user_data.role == 'student' %}
+                for (let i = 1; i <= 6; i++) {
+                    const box = document.getElementById('period-' + i);
+                    const record = records.find(r => r.period == i);
+                    if (record) {
+                        box.className = 'period-box ' + record.status.toLowerCase();
+                        box.querySelector('.status').innerHTML = record.status + '<br><small class="text-muted">By: ' + (record.marked_by || 'N/A') + '</small>';
+                    } else {
+                        box.querySelector('.status').innerText = 'Not Marked';
+                    }
+                }
+                {% else %}
+                const tbody = document.getElementById('attendanceList');
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">No records found for today</td></tr>';
+                } else {
+                    tbody.innerHTML = records.map(r => `
+                        <tr>
+                            <td>Period ${r.period}</td>
+                            <td>${r.name || 'Unknown'}</td>
+                            <td><span class="badge bg-${r.status == 'Present' ? 'success' : 'danger'}">${r.status}</span></td>
+                            <td>${r.time || 'N/A'}</td>
+                            <td>${r.marked_by || 'N/A'}</td>
+                        </tr>
+                    `).join('');
+                }
+                {% endif %}
+            } catch (e) { console.error(e); }
+        }
+
+        loadAttendance();
+    </script>
+</body>
+
+</html>
